@@ -1,0 +1,44 @@
+# https://www.websequencediagrams.com/app
+title Caliper.ImageViewer
+actor User
+participant FEF
+participant BrowserWindow
+participant Caliper.ImageViewer
+participant Gen3.Fence
+participant Gen3.Guppy
+participant Any.ImagingApp
+note left of  Any.ImagingApp: eg. vitessce.io, Aviator
+
+alt auth
+User->FEF: login
+FEF->Gen3.Fence: authenticate
+Gen3.Fence->FEF: cookie['access_token']
+FEF->FEF: store cookie
+FEF->User: logged in
+end
+
+alt cohort
+User->FEF: select cohort
+FEF->Gen3.Guppy: query ...
+Gen3.Guppy->FEF: files [{object_id, ...}]
+FEF->FEF: render cell <link href={base}/view/{object_id}, _blank/>
+FEF->User: rendered table
+end
+
+
+alt view image
+User->FEF: click link in table cell
+FEF->BrowserWindow: open new tab url=(cell contents)
+BrowserWindow->Caliper.ImageViewer: view/{object_id} cookie cookie | Bearer
+Caliper.ImageViewer->Gen3.Fence: retrieve SignedUrl
+Caliper.ImageViewer->Caliper.ImageViewer: compose URL
+Caliper.ImageViewer->BrowserWindow: REDIRECT(URL)
+BrowserWindow->Any.ImagingApp: GET URL
+Any.ImagingApp->Any.ImagingApp: Read SignedUrl
+Any.ImagingApp->BrowserWindow: html ...
+BrowserWindow->User: rendered images
+
+end
+
+
+
