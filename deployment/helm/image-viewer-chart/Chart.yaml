@@ -1,5 +1,0 @@
-apiVersion: v2
-name: image-viewer
-description: A FastAPI microservice for rendering a URL containing a viewing images.
-version: 0.1.0
-appVersion: "1.0"
