@@ -4,7 +4,7 @@ WORKDIR /app
 
 RUN git clone  https://github.com/ACED-IDP/image_viewer
 WORKDIR /app/image_viewer
-RUN git checkout feature/initial
+RUN git checkout development
 COPY pyproject.toml .
 RUN pip install --no-cache-dir .
 
