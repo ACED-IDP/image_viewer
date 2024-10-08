@@ -1,5 +1,6 @@
 import os
 
+import requests
 from fastapi import FastAPI, HTTPException, Header, Cookie
 from fastapi.responses import RedirectResponse
 import uvicorn
@@ -49,10 +50,13 @@ async def view_object(object_id: str, authorization: str = Header(None), access_
     if not token:
         raise HTTPException(status_code=404, detail="Token not found")
 
-    signed_url = get_signed_url(object_id, token)
-    # Use the configurable base_url from settings
-    redirect_url = f"{settings.base_url}{signed_url}"
-    return RedirectResponse(url=redirect_url)
+    try:
+        signed_url = get_signed_url(object_id, token)
+        # Use the configurable base_url from settings
+        redirect_url = f"{settings.base_url}{signed_url}"
+        return RedirectResponse(url=redirect_url)
+    except requests.exceptions.HTTPError as e:
+        raise HTTPException(status_code=e.response.status_code, detail=str(e))
 
 
 # Make the application multi-threaded
