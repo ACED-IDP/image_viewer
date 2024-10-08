@@ -1,3 +1,4 @@
+import urllib.parse
 from importlib import reload
 
 from fastapi.testclient import TestClient
@@ -41,7 +42,8 @@ def monkey_patch_gen3_signed_url(monkeypatch):
         response_.status_code = 200
         assert 'user/data/download/' in api_url
         object_id_ = api_url.split('/')[-1]
-        response_.json = lambda: {"url": "https://example.com/signed-url-for-object/" + object_id_}
+        url = urllib.parse.quote("https://example.com/signed-url-for-object/" + object_id_)
+        response_.json = lambda: {"url": url}
         return response_
 
     monkeypatch.setattr(requests, "get", mock_signed_url)

@@ -1,4 +1,5 @@
 import os
+import urllib.parse
 
 import requests
 from fastapi import FastAPI, HTTPException, Header, Cookie
@@ -53,7 +54,7 @@ async def view_object(object_id: str, authorization: str = Header(None), access_
     try:
         signed_url = get_signed_url(object_id, token)
         # Use the configurable base_url from settings
-        redirect_url = f"{settings.base_url}{signed_url}"
+        redirect_url = f"{settings.base_url}{urllib.parse.quote_plus(signed_url)}"
         return RedirectResponse(url=redirect_url)
     except requests.exceptions.HTTPError as e:
         raise HTTPException(status_code=e.response.status_code, detail=str(e))
