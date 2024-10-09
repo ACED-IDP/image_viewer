@@ -42,7 +42,7 @@ def monkey_patch_gen3_signed_url(monkeypatch):
         response_.status_code = 200
         assert 'user/data/download/' in api_url
         object_id_ = api_url.split('/')[-1]
-        url = urllib.parse.quote("https://example.com/signed-url-for-object/" + object_id_)
+        url = urllib.parse.quote("https://example.com/signed-url-for-object/?foo=bar&id=" + object_id_)
         response_.json = lambda: {"url": url}
         return response_
 

@@ -19,6 +19,7 @@ def test_view_object_with_cookie_token(client_with_cookie):
     image_url = query_params['image_url'][0]
     assert image_url, f"should end with {object_id}"
     assert ':' not in image_url, "should not contain ':'"
+    assert '&' not in image_url, "should not contain '&'"
 
 
 def test_view_object_without_token(client):
