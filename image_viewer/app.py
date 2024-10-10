@@ -7,9 +7,13 @@ from fastapi.responses import RedirectResponse
 import uvicorn
 import threading
 
+from gen3.auth import Gen3Auth
+from gen3.file import Gen3File
+from gen3.index import Gen3Index
 from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
+from image_viewer.indexd_searcher import aviator_url
 from image_viewer.object_signer import get_signed_url
 
 AVIVATOR_URL = "https://avivator.gehlenborglab.org/?image_url="
@@ -52,9 +56,7 @@ async def view_object(object_id: str, authorization: str = Header(None), access_
         raise HTTPException(status_code=404, detail="Token not found")
 
     try:
-        signed_url = get_signed_url(object_id, token)
-        # Use the configurable base_url from settings
-        redirect_url = f"{settings.base_url}{urllib.parse.quote_plus(signed_url)}"
+        redirect_url = aviator_url(object_id, token, settings.base_url)
         return RedirectResponse(url=redirect_url)
     except requests.exceptions.HTTPError as e:
         raise HTTPException(status_code=e.response.status_code, detail=str(e))
