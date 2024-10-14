@@ -5,6 +5,10 @@ from gen3.auth import Gen3Auth
 from gen3.file import Gen3File
 from gen3.index import Gen3Index
 from image_viewer.object_signer import get_signed_url
+import logging
+
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG)
 
 
 def aviator_url(object_id: str, access_token: str, base_url: str) -> str:
@@ -26,18 +30,19 @@ def aviator_url(object_id: str, access_token: str, base_url: str) -> str:
     file_service = Gen3File(auth)
     index_service = Gen3Index(auth)
 
-    source_records = index_service.get(object_id)
-    if not isinstance(source_records, list) or len(source_records) != 1:
-        raise HTTPException(status_code=500, detail=f"Could not find object with id {object_id} {source_records}")
-    source_record = source_records[0]
+    source_record = index_service.get(object_id)
+    if not isinstance(source_record, dict):
+        raise HTTPException(status_code=500, detail=f"Could not find object with id {object_id} {source_record}")
+    logger.error(f"aviator_url source_record {source_record}")
     if "file_name" not in source_record:
         raise HTTPException(status_code=500, detail=f"Could not find file_name within {source_record}")
     if "ome.tif" not in source_record["file_name"]:
         raise HTTPException(status_code=500, detail=f"Expected file_name to contain 'ome.tif' {source_record}")
     source_file_name = source_record["file_name"]
 
-    offset_file_name = source_file_name.replace("ome.tif", "offsets.json")
-    offsets_records = index_service.query_urls(offset_file_name, {"include": offset_file_name})
+    offset_file_name = source_file_name.replace("ome.tiff", "offsets.json")
+    offset_file_name = offset_file_name.replace("ome.tif", "offsets.json")
+    offsets_records = index_service.query_urls(offset_file_name)
     if not isinstance(offsets_records, list) or len(offsets_records) != 1:
         raise HTTPException(status_code=500,
                             detail=f"Could not find object with file_name {offset_file_name} {offsets_records}")

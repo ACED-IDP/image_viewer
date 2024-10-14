@@ -7,6 +7,7 @@ from fastapi import FastAPI, HTTPException, Header, Cookie
 from fastapi.responses import RedirectResponse
 import uvicorn
 import threading
+import sys
 
 from gen3.auth import Gen3Auth
 from gen3.file import Gen3File
@@ -34,6 +35,12 @@ settings = Settings()
 app = FastAPI(settings=settings)
 
 
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG)
+
+logger.info('API is starting up')
+
+
 @app.get("/_health", summary="Health Check", description="Indicates server is running, returns a 200 OK status.")
 async def health_check():
     return {"status": "OK"}
@@ -47,21 +54,27 @@ async def view_object(object_id: str, authorization: str = Header(None), access_
 
     token = None
 
+    logger.error("in view object")
+
     if authorization and authorization.startswith("Bearer "):
         token = authorization.split(" ")[1]  # Extract token from "Bearer <token>"
     elif access_token:
         token = access_token
 
+    logger.error(f"in view object token {token}")
     # If no token is found, raise a 404 Not Found error
     if not token:
         raise HTTPException(status_code=404, detail="Token not found")
 
     try:
+        logger.error(f"in view object {object_id} {settings.base_url}")
         redirect_url = aviator_url(object_id, token, settings.base_url)
+        logger.error(f"in view object {redirect_url}")
+
         return RedirectResponse(url=redirect_url)
-    except requests.exceptions.HTTPError as e:
-        logging.getLogger("uvicorn.error").error(e)
-        raise HTTPException(status_code=e.response.status_code, detail=str(e))
+    except HTTPException as e:
+        logger.error(str(e))
+        raise HTTPException(status_code=e.status_code, detail=str(e))
 
 
 # Make the application multi-threaded
