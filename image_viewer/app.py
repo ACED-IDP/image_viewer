@@ -1,3 +1,4 @@
+import logging
 import os
 import urllib.parse
 
@@ -59,6 +60,7 @@ async def view_object(object_id: str, authorization: str = Header(None), access_
         redirect_url = aviator_url(object_id, token, settings.base_url)
         return RedirectResponse(url=redirect_url)
     except requests.exceptions.HTTPError as e:
+        logging.getLogger("uvicorn.error").error(e)
         raise HTTPException(status_code=e.response.status_code, detail=str(e))
 
 
