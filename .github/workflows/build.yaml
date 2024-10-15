@@ -21,7 +21,7 @@ jobs:
     - name: Build and push image
       run: |
         # Set Image tag to the branch name
-        BRANCH=develop
+        BRANCH=$(echo ${GITHUB_REF#refs/*/} | tr / _)
         REPO=quay.io/ohsu-comp-bio/gen3-image-viewer
         echo "Setting image tag to $REPO:$BRANCH"
 
