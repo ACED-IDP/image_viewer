@@ -2,11 +2,7 @@ name: Build and publish Image Viewer image
 
 on:
   push:
-    branches:
-    - develop
   workflow_dispatch:
-    branches:
-    - develop
 
 jobs:
   build:
