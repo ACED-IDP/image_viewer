@@ -1,13 +1,15 @@
-# https://www.websequencediagrams.com/app
 title Caliper.ImageViewer
 actor User
 participant FEF
 participant BrowserWindow
 participant Caliper.ImageViewer
+participant viv
+participant Gen3.indexd
 participant Gen3.Fence
 participant Gen3.Guppy
-participant Any.ImagingApp
-note left of  Any.ImagingApp: eg. vitessce.io, Aviator
+participant s3
+note left of  viv: eg. vitessce.io, Aviator
+note left of  s3: must have CORS
 
 alt auth
 User->FEF: login
@@ -30,15 +32,24 @@ alt view image
 User->FEF: click link in table cell
 FEF->BrowserWindow: open new tab url=(cell contents)
 BrowserWindow->Caliper.ImageViewer: view/{object_id} cookie cookie | Bearer
-Caliper.ImageViewer->Gen3.Fence: retrieve SignedUrl
+
+alt aviator
+Caliper.ImageViewer->Gen3.indexd: get object_id
+Caliper.ImageViewer->Caliper.ImageViewer: check `*.ome.tiff`
+Caliper.ImageViewer->Gen3.indexd: lookup corresponding`*offsets.json`
+Caliper.ImageViewer->Gen3.Fence: retrieve SignedUrls for ome.tiff and offsets.json
 Caliper.ImageViewer->Caliper.ImageViewer: compose URL
 Caliper.ImageViewer->BrowserWindow: REDIRECT(URL)
-BrowserWindow->Any.ImagingApp: GET URL
-Any.ImagingApp->Any.ImagingApp: Read SignedUrl
-Any.ImagingApp->BrowserWindow: html ...
+end
+
+alt vitessce
+note right of BrowserWindow: TODO
+end
+
+BrowserWindow->viv: GET URL?image_url=XXX&offsets_url=XXX
+viv->s3: Read SignedUrls
+viv->BrowserWindow: html ...
 BrowserWindow->User: rendered images
 
 end
-
-
 
