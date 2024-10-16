@@ -57,5 +57,5 @@ def aviator_url(object_id: str, access_token: str, base_url: str) -> str:
 
     # Use the configurable base_url from settings
     # we encode the signed url because it will contain special characters
-    redirect_url = f"{base_url}{urllib.parse.quote_plus(source_signed_url)}{urllib.parse.quote_plus(f'&offsets_url={offsets_signed_url}')}"
+    redirect_url = f"{base_url}{urllib.parse.quote_plus(source_signed_url)}&offsets_url={urllib.parse.quote_plus(offsets_signed_url)}"
     return redirect_url

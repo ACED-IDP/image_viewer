@@ -1,24 +1,18 @@
 import logging
 import os
-import urllib.parse
+import threading
 
-import requests
+import uvicorn
 from fastapi import FastAPI, HTTPException, Header, Cookie
 from fastapi.responses import RedirectResponse
-import uvicorn
-import threading
-import sys
-
-from gen3.auth import Gen3Auth
-from gen3.file import Gen3File
-from gen3.index import Gen3Index
 from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 from image_viewer.indexd_searcher import aviator_url
-from image_viewer.object_signer import get_signed_url
 
+#AVIVATOR_URL = "https://avivator.gehlenborglab.org/?image_url="
 AVIVATOR_URL = "/aviator/?image_url="
+
 VITESSCE_URL = "https://vitessce.io/?url=data:,{API OUTPUT HERE}"  # TODO: Add the view config API here, including the signed url See https://python-docs.vitessce.io/api_config.html#vitessce.config.VitessceConfig.add_dataset
 
 
