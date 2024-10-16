@@ -18,7 +18,7 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 from image_viewer.indexd_searcher import aviator_url
 from image_viewer.object_signer import get_signed_url
 
-AVIVATOR_URL = "https://avivator.gehlenborglab.org/?image_url="
+AVIVATOR_URL = "/aviator/?image_url="
 VITESSCE_URL = "https://vitessce.io/?url=data:,{API OUTPUT HERE}"  # TODO: Add the view config API here, including the signed url See https://python-docs.vitessce.io/api_config.html#vitessce.config.VitessceConfig.add_dataset
 
 
