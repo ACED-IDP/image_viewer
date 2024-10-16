@@ -1,12 +1,21 @@
 FROM python:3.12
 
-WORKDIR /app
+ARG GITHUB_SHA
+ENV GITHUB_SHA=$GITHUB_SHA
 
-ADD "https://api.github.com/repos/ACED-IDP/image_viewer/commits?per_page=1" latest_commit
-
-RUN git clone  https://github.com/ACED-IDP/image_viewer
 WORKDIR /app/image_viewer
-RUN git checkout development
-RUN pip install --no-cache-dir .
-RUN git log --oneline
+# Copy the project files into the container
+COPY pyproject.toml  ./
+
+RUN pip install .
+
+# write git commit hash to a file
+RUN echo $GITHUB_SHA > git_commit_hash.txt
+
+# Copy the rest of the project files into the container
+COPY . .
+
+# Expose the port your app listens on
+EXPOSE 8000
+
 CMD ["uvicorn", "image_viewer.app:app", "--reload"]
