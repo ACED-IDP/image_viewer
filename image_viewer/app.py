@@ -8,7 +8,7 @@ from fastapi.responses import RedirectResponse
 from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
-from image_viewer.indexd_searcher import aviator_url
+from image_viewer.indexd_searcher import redirection_url
 
 #AVIVATOR_URL = "https://avivator.gehlenborglab.org/?image_url="
 AVIVATOR_URL = "/aviator/?image_url="
@@ -62,7 +62,7 @@ async def view_object(object_id: str, authorization: str = Header(None), access_
 
     try:
         logger.error(f"in view object {object_id} {settings.base_url}")
-        redirect_url = aviator_url(object_id, token, settings.base_url)
+        redirect_url = redirection_url(object_id, token, settings.base_url)
         logger.error(f"in view object {redirect_url}")
 
         return RedirectResponse(url=redirect_url)

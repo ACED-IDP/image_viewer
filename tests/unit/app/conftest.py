@@ -47,11 +47,11 @@ def monkey_patch_aviator(monkeypatch):
         offsets_url = urllib.parse.quote_plus(f'https://offsets-{object_id}')
         parms = f'image_url={image_url}&offsets_url={offsets_url}'
         _ = f"https://env-file-url.com/objects/?{parms}"
-        print(f"Mocked aviator_url: {object_id} {access_token} {base_url} -> {_}")
+        print(f"Mocked redirection_url: {object_id} {access_token} {base_url} -> {_}")
         return _
 
-    monkeypatch.setattr(image_viewer.indexd_searcher, "aviator_url", mock_aviator_url)
-    print("Monkey patched aviator_url")
+    monkeypatch.setattr(image_viewer.indexd_searcher, "redirection_url", mock_aviator_url)
+    print("Monkey patched redirection_url")
 
 
 def monkey_patch_signed_url(monkeypatch):
