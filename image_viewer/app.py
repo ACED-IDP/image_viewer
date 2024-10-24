@@ -3,11 +3,12 @@ import os
 import threading
 
 import uvicorn
-from fastapi import FastAPI, HTTPException, Header, Cookie
+from fastapi import FastAPI, HTTPException, Header, Cookie, Request
 from fastapi.responses import RedirectResponse
 from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
+from image_viewer import cache
 from image_viewer.indexd_searcher import redirection_url
 
 #AVIVATOR_URL = "https://avivator.gehlenborglab.org/?image_url="
@@ -44,7 +45,8 @@ async def health_check():
          summary="View Object",
          description="Redirects to a URL for the object.",
          responses={307: {"description": "Temporary Redirect"}})
-async def view_object(object_id: str, authorization: str = Header(None), access_token: str = Cookie(None)):
+async def view_object(object_id: str, request: Request, authorization: str = Header(None), access_token: str = Cookie(None)):
+    """Create a view for the object, render a redirect."""
 
     token = None
 
@@ -62,13 +64,30 @@ async def view_object(object_id: str, authorization: str = Header(None), access_
 
     try:
         logger.error(f"in view object {object_id} {settings.base_url}")
-        redirect_url = redirection_url(object_id, token, settings.base_url)
+        redirect_url = redirection_url(object_id, token, settings.base_url, request)
         logger.error(f"in view object {redirect_url}")
 
         return RedirectResponse(url=redirect_url)
     except HTTPException as e:
         logger.error(str(e))
         raise HTTPException(status_code=e.status_code, detail=str(e))
+
+
+@app.get("/ucsc/{token_hash}/{object_id}",
+         summary="UCSC Genome Browser Track definition",
+         description="Redirects to a URL for the object.",
+         responses={200: {"description": "Track config https://genome.ucsc.edu/goldenpath/help/trackDb/trackDbHub.html"}})
+async def ucsc_track(token_hash: str, object_id: str, authorization: str = Header(None), access_token: str = Cookie(None)):
+    urls: dict = cache.get(f"{object_id}_{token_hash}")
+    if not urls:
+        raise HTTPException(status_code=404, detail="No signed URL found")
+    source = urls.get("source")
+    tbi = urls.get("tbi")
+    if not source or not tbi:
+        raise HTTPException(status_code=404, detail="No signed URL found")
+    return f"""
+    track type=vcf name="vcf" description="vcf" visibility=full bigDataUrl="{source}" bigDataIndex="{tbi}"
+    """
 
 
 # Make the application multi-threaded

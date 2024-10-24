@@ -15,7 +15,8 @@ dependencies = [
     "requests",
     "pydantic-settings",
     "python-dotenv",
-    "gen3"
+    "gen3",
+    "cacheout"
 ]
 
 [project.optional-dependencies]

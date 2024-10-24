@@ -1,6 +1,6 @@
 import urllib.parse
 from importlib import reload
-
+from fastapi import Request
 from fastapi.testclient import TestClient
 import pytest
 import image_viewer.app
@@ -41,8 +41,9 @@ def monkey_patch_aviator(monkeypatch):
     """Monkey patch the Aviator URL response."""
     import image_viewer.indexd_searcher
 
-    def mock_aviator_url(object_id, access_token, base_url):
+    def mock_aviator_url(object_id, access_token, base_url, request: Request):
         """Mock the Aviator URL response"""
+        print("In mock_aviator_url")
         image_url = urllib.parse.quote_plus(f'https://image-{object_id}')
         offsets_url = urllib.parse.quote_plus(f'https://offsets-{object_id}')
         parms = f'image_url={image_url}&offsets_url={offsets_url}'
@@ -52,6 +53,7 @@ def monkey_patch_aviator(monkeypatch):
 
     monkeypatch.setattr(image_viewer.indexd_searcher, "redirection_url", mock_aviator_url)
     print("Monkey patched redirection_url")
+    # print(image_viewer.indexd_searcher.redirection_url("123", "456", "789", None))
 
 
 def monkey_patch_signed_url(monkeypatch):
