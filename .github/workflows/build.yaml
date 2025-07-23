@@ -22,13 +22,14 @@ jobs:
     - name: Build and push image
       run: |
         # Set Image tag to the branch name
+        RAW_BRANCH_NAME=$(echo ${GITHUB_REF#refs/*/})
         BRANCH=$(echo ${GITHUB_REF#refs/*/} | tr / _)
         REPO=quay.io/ohsu-comp-bio/gen3-image-viewer
         echo "Setting image tag to $REPO:$BRANCH"
 
         # Login to Quay.io and build image
         docker login quay.io
-        docker build -t $REPO:$BRANCH --build-arg BRANCH=$BRANCH .
+        docker build -t $REPO:$BRANCH --build-arg BRANCH=$RAW_BRANCH_NAME .
 
         # Add 'latest' tag to 'main' image
         if [[ $BRANCH == 'main' ]]; then
