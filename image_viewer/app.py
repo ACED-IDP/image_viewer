@@ -48,22 +48,17 @@ async def view_object(object_id: str, authorization: str = Header(None), access_
 
     token = None
 
-    logger.error("in view object")
-
     if authorization and authorization.startswith("Bearer "):
         token = authorization.split(" ")[1]  # Extract token from "Bearer <token>"
     elif access_token:
         token = access_token
 
-    logger.error(f"in view object token {token}")
     # If no token is found, raise a 404 Not Found error
     if not token:
         raise HTTPException(status_code=404, detail="Token not found")
 
     try:
-        logger.error(f"in view object {object_id} {settings.base_url}")
         redirect_url = aviator_url(object_id, token, settings.base_url)
-        logger.error(f"in view object {redirect_url}")
 
         return RedirectResponse(url=redirect_url)
     except HTTPException as e:
