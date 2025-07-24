@@ -4,10 +4,11 @@ WORKDIR /app
 
 ADD "https://api.github.com/repos/ACED-IDP/image_viewer/commits?per_page=1" latest_commit
 
-RUN git clone  https://github.com/ACED-IDP/image_viewer
+# Clone the specific branch
+RUN git clone --branch $BRANCH https://github.com/ACED-IDP/image_viewer.git
+
 WORKDIR /app/image_viewer
-RUN git checkout $BRANCH 
-RUN git pull origin $BRANCH 
+
 RUN pip install --no-cache-dir .
 RUN git log --oneline
 CMD ["uvicorn", "image_viewer.app:app", "--reload"]
