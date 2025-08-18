@@ -79,6 +79,19 @@ The `image_viewer.app` is a FastAPI-based microservice designed to provide an AP
 5. **Environment Variables**:
    - Managed through a `.env` file, or BASE_URL environmental variable, allowing dynamic configuration of the base URL for redirects.
 
+### Data preparation
+
+From [Avivator web app documentation](http://viv.gehlenborglab.org/)
+> ⚠️ IMPORTANT ⚠️ Avivator requires the offsets.json file to be adjacent to the OME-TIFF on the server in order to leverage this feature. For example, if an index is generated for the dataset in this tutorial, the following directory structure is correct:
+```
+  data
+  ├── LuCa-7color_Scan1.offsets.json
+  └── LuCa-7color_Scan1.ome.tif
+```
+From [Avivator documentation for generating tiff offsets](https://github.com/hms-dbmi/generate-tiff-offsets?tab=readme-ov-file#-python-cli)
+> Warning Our OME-TIFF web-viewer, Avivator expects this naming convension and folder structure in order for the Indexed OME-TIFF to be recognized.
+
+
 ### Dependencies
 
 See [Slack Discussion](https://ohsucomputationalbio.slack.com/archives/C07GW6G69QE/p1725982750730089?thread_ts=1725923251.830729&cid=C07GW6G69QE)
