@@ -16,11 +16,13 @@ def client_with_cookie_base_url(monkeypatch, base_url, valid_token):
     client_ = TestClient(image_viewer.app.app)
 
     client_.cookies.update({"access_token": valid_token})
+    print(client_)
     yield client_
 
 
 # Test setting base_url via environment variable
 def test_base_url_from_env_variable(monkeypatch, client_with_cookie_base_url, base_url):
+    print(client_with_cookie_base_url)
 
     object_id = "123"
     response = client_with_cookie_base_url.get(f"/view/{object_id}", follow_redirects=False)

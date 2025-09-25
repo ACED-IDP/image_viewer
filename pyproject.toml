@@ -7,7 +7,7 @@ name = "image_viewer"
 version = "0.1.0"
 description = "A FastAPI project for viewing images"
 authors = [
-    { name = "Your Name", email = "your.email@example.com" }
+    { name = "Brian Walsh", email = "walsbr@ohsu.edu" }
 ]
 dependencies = [
     "fastapi",
@@ -15,7 +15,8 @@ dependencies = [
     "requests",
     "pydantic-settings",
     "python-dotenv",
-    "gen3"
+    "gen3",
+    "cacheout"
 ]
 
 [project.optional-dependencies]
