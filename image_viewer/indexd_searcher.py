@@ -34,18 +34,18 @@ def aviator_url(object_id: str, access_token: str, base_url: str) -> str:
     if not isinstance(source_record, dict):
         raise HTTPException(status_code=500, detail=f"Could not find object with id {object_id} {source_record}")
     logger.error(f"aviator_url source_record {source_record}")
-    if "file_name" not in source_record:
-        raise HTTPException(status_code=500, detail=f"Could not find file_name within {source_record}")
-    if "ome.tif" not in source_record["file_name"]:
-        raise HTTPException(status_code=500, detail=f"Expected file_name to contain 'ome.tif' {source_record}")
-    source_file_name = source_record["file_name"]
+    if "urls" not in source_record or not isinstance(source_record["urls"], list) or len(source_record["urls"]) == 0:
+        raise HTTPException(status_code=500, detail=f"Could not find urls within {source_record}")
+    
+    source_url = source_record["urls"][0]
+    if "ome.tif" not in source_url:
+        raise HTTPException(status_code=500, detail=f"Expected url to contain 'ome.tif' {source_record}")
 
-    offset_file_name = source_file_name.replace("ome.tiff", "offsets.json")
-    offset_file_name = offset_file_name.replace("ome.tif", "offsets.json")
-    offsets_records = index_service.query_urls(offset_file_name)
-    if not isinstance(offsets_records, list) or len(offsets_records) != 1:
+    offset_file_url = source_url.replace("ome.tiff", "offsets.json").replace("ome.tif", "offsets.json")
+    offsets_records = index_service.query_urls(offset_file_url)
+    if not isinstance(offsets_records, list) or len(offsets_records) == 0:
         raise HTTPException(status_code=500,
-                            detail=f"Could not find object with file_name {offset_file_name} {offsets_records}")
+                            detail=f"Could not find object with url {offset_file_url} {offsets_records}")
     offsets_record = offsets_records[0]
     if "did" not in offsets_record:
         raise HTTPException(status_code=500, detail=f"Could not find did within {offsets_record}")
