@@ -12,7 +12,7 @@ This project provides an API for viewing images. It includes endpoints for healt
 
 1. Clone the repository:
     ```sh
-    git clone https://github.com/aced/image_viewer.git
+    git clone https://github.com/calypr/image_viewer.git
     cd image_viewer
     ```
 

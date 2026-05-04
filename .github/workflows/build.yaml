@@ -29,7 +29,7 @@ jobs:
 
         # Login to Quay.io and build image
         docker login quay.io
-        docker build -t $REPO:$BRANCH --build-arg BRANCH=$RAW_BRANCH_NAME .
+        docker build -t $REPO:$BRANCH .
 
         # Add 'latest' tag to 'main' image
         if [[ $BRANCH == 'main' ]]; then
@@ -38,4 +38,3 @@ jobs:
 
         # Push the tagged image to Quay.io
         docker push --all-tags $REPO
-
