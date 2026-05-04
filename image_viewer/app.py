@@ -3,7 +3,7 @@ import os
 import threading
 
 import uvicorn
-from fastapi import FastAPI, HTTPException, Header, Cookie
+from fastapi import FastAPI, HTTPException, Header, Cookie, Request
 from fastapi.responses import RedirectResponse
 from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -20,6 +20,7 @@ VITESSCE_URL = "https://vitessce.io/?url=data:,{API OUTPUT HERE}"  # TODO: Add t
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file=".env")
     base_url: str = Field(default=os.getenv("BASE_URL", AVIVATOR_URL))
+    syfon_url: str = Field(default=os.getenv("SYFON_URL", ""))
 
 
 # Load configuration
@@ -44,7 +45,12 @@ async def health_check():
          summary="View Object",
          description="Redirects to a URL for the object.",
          responses={307: {"description": "Temporary Redirect"}})
-async def view_object(object_id: str, authorization: str = Header(None), access_token: str = Cookie(None)):
+async def view_object(
+    object_id: str,
+    request: Request,
+    authorization: str = Header(None),
+    access_token: str = Cookie(None),
+):
 
     token = None
 
@@ -58,7 +64,8 @@ async def view_object(object_id: str, authorization: str = Header(None), access_
         raise HTTPException(status_code=404, detail="Token not found")
 
     try:
-        redirect_url = aviator_url(object_id, token, settings.base_url)
+        syfon_url = settings.syfon_url or str(request.base_url).rstrip("/")
+        redirect_url = aviator_url(object_id, token, settings.base_url, syfon_url)
 
         return RedirectResponse(url=redirect_url)
     except HTTPException as e:
