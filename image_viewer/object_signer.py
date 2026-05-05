@@ -53,12 +53,15 @@ def _get_json(url: str, access_token: str, **kwargs) -> dict:
     try:
         response = requests.get(url, headers={"Authorization": f"Bearer {access_token}"}, timeout=30, **kwargs)
     except requests.RequestException as err:
+        logger.error("Syfon request failed url=%s error=%s", url, err)
         raise HTTPException(status_code=502, detail=f"Syfon request failed: {err}") from err
     if response.status_code >= 400:
-        raise HTTPException(status_code=response.status_code, detail=response.text)
+        logger.error("Syfon returned error url=%s status=%s body=%s", url, response.status_code, response.text)
+        raise HTTPException(status_code=response.status_code, detail=f"{url}: {response.text}")
     try:
         return response.json()
     except ValueError as err:
+        logger.error("Syfon returned non-JSON url=%s status=%s body=%s", url, response.status_code, response.text)
         raise HTTPException(status_code=502, detail=f"Syfon returned non-JSON response from {url}") from err
 
 
