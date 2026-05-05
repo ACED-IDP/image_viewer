@@ -11,7 +11,7 @@ logger = logging.getLogger(__name__)
 
 def get_object(object_id: str, access_token: str, syfon_url: str) -> dict:
     """Fetch a DRS object from Syfon."""
-    return _get_json(f"{_base_url(syfon_url)}/objects/{_quote_path(object_id)}", access_token)
+    return _get_json(f"{_drs_url(syfon_url)}/objects/{_quote_path(object_id)}", access_token)
 
 
 def query_url(object_url: str, access_token: str, syfon_url: str) -> list:
@@ -28,7 +28,7 @@ def query_url(object_url: str, access_token: str, syfon_url: str) -> list:
 
 
 def get_signed_url(object_id: str, access_token: str, syfon_url: str, drs_object: Optional[dict] = None) -> str:
-    """Ask Syfon for a signed URL for the object's first access method."""
+    """Ask Syfon's DRS access endpoint for a signed URL."""
     drs_object = drs_object or get_object(object_id, access_token, syfon_url)
     access_methods = drs_object.get("access_methods", [])
     if not isinstance(access_methods, list) or len(access_methods) == 0:
@@ -40,7 +40,7 @@ def get_signed_url(object_id: str, access_token: str, syfon_url: str, drs_object
         raise HTTPException(status_code=500, detail=f"Object access method has no access_id: {object_id}")
 
     signed = _get_json(
-        f"{_base_url(syfon_url)}/objects/{_quote_path(object_id)}/access/{_quote_path(access_id)}",
+        f"{_drs_url(syfon_url)}/objects/{_quote_path(object_id)}/access/{_quote_path(access_id)}",
         access_token,
     )
     if "url" not in signed:
@@ -67,6 +67,10 @@ def _base_url(syfon_url: str) -> str:
     if not base:
         raise HTTPException(status_code=500, detail="SYFON_URL is not configured")
     return base
+
+
+def _drs_url(syfon_url: str) -> str:
+    return f"{_base_url(syfon_url)}/ga4gh/drs/v1"
 
 
 def _quote_path(value: str) -> str:

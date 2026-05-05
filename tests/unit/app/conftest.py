@@ -53,22 +53,3 @@ def monkey_patch_aviator(monkeypatch):
     monkeypatch.setattr(image_viewer.indexd_searcher, "aviator_url", mock_aviator_url)
     print("Monkey patched aviator_url")
 
-
-def monkey_patch_signed_url(monkeypatch):
-    """Monkey patch the legacy signed URL response. NOTE: NOT USED CURRENTLY."""
-    # TODO - deprecate this function if we are not going to use it.
-    import requests  # noqa
-    reload(image_viewer.app)  # reload the app to pick up the new environment variable
-
-    def mock_signed_url(api_url, auth):
-        """Mock the signed URL response"""
-        response_ = requests.Response()
-        response_.status_code = 200
-        assert 'user/data/download/' in api_url
-        object_id_ = api_url.split('/')[-1]
-        url = urllib.parse.quote("https://example.com/signed-url-for-object/?foo=bar&id=" + object_id_)
-        response_.json = lambda: {"url": url}
-        return response_
-
-    monkeypatch.setattr(requests, "get", mock_signed_url)
-    print("Monkey patched requests.get")

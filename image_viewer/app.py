@@ -1,6 +1,7 @@
 import logging
 import os
 import threading
+from urllib.parse import urlunsplit
 
 import uvicorn
 from fastapi import FastAPI, HTTPException, Header, Cookie, Request
@@ -36,6 +37,17 @@ logger.setLevel(logging.DEBUG)
 logger.info('API is starting up')
 
 
+def _syfon_url_for_request(request: Request) -> str:
+    if settings.syfon_url:
+        return settings.syfon_url.rstrip("/")
+
+    proto = request.headers.get("x-forwarded-proto") or request.url.scheme
+    host = request.headers.get("x-forwarded-host") or request.headers.get("host") or request.url.netloc
+    proto = proto.split(",", 1)[0].strip()
+    host = host.split(",", 1)[0].strip()
+    return urlunsplit((proto, host, "", "", "")).rstrip("/")
+
+
 @app.get("/_health", summary="Health Check", description="Indicates server is running, returns a 200 OK status.")
 async def health_check():
     return {"status": "OK"}
@@ -64,7 +76,7 @@ async def view_object(
         raise HTTPException(status_code=404, detail="Token not found")
 
     try:
-        syfon_url = settings.syfon_url or str(request.base_url).rstrip("/")
+        syfon_url = _syfon_url_for_request(request)
         redirect_url = aviator_url(object_id, token, settings.base_url, syfon_url)
 
         return RedirectResponse(url=redirect_url)

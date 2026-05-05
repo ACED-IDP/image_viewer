@@ -105,7 +105,7 @@ Both of these:
 * Render `tiff` files in the browser
 * Are single-page apps that require signed URLs to access the data. The signed URLs are generated through Syfon's DRS access endpoint.
 * The Caliper Image Viewer formats the URL and delivers the redirect response to FEF.
-* `SYFON_URL` can point at a Syfon deployment. If it is not set, the service uses the current request base URL.
+* `SYFON_URL` can point at a Syfon deployment. If it is not set, the service uses the current request origin.
 
 
 ### Key Files
@@ -118,7 +118,7 @@ Both of these:
 ### User Flow
 - The caller can send a GET request to the /view/{object_id} endpoint to retrieve a signed URL for the specified object.
 - The application will generate a signed URL for the object and return a 307 redirect to the signed URL.
-  - The source DRS object is fetched from Syfon, the companion `offsets.json` object is found with Syfon's `/index?url=...` filter, and both objects are signed through Syfon.
+  - The source DRS object is fetched from Syfon, the companion `offsets.json` object is found with Syfon's `/index?url=...` filter, and both objects are signed through Syfon's DRS access endpoint.
   - For the VITESSE use case, the signed URL is included in a more complex "View config" object that is provided in the command line. See #1
 - The caller MUST provide an authorization token either in the Authorization header (as a Bearer token) or as a cookie (access_token).
 - The caller MUST handle the redirect to the signed URL to view the object. 307 status code is returned with the Location header containing the signed URL.

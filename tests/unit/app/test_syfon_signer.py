@@ -33,7 +33,7 @@ def test_query_url_uses_syfon_index_url_filter(monkeypatch):
     assert calls[0][1]["headers"] == {"Authorization": "Bearer token"}
 
 
-def test_get_signed_url_uses_first_access_method(monkeypatch):
+def test_get_signed_url_uses_drs_access_endpoint(monkeypatch):
     calls = []
 
     def fake_get(url, **kwargs):
@@ -50,7 +50,7 @@ def test_get_signed_url_uses_first_access_method(monkeypatch):
     )
 
     assert signed == "https://signed.example/object"
-    assert calls[0][0] == "https://syfon.example/objects/object%2Fid/access/s3%2Fmain"
+    assert calls[0][0] == "https://syfon.example/ga4gh/drs/v1/objects/object%2Fid/access/s3%2Fmain"
 
 
 def test_aviator_url_resolves_offsets_through_syfon(monkeypatch):
@@ -58,7 +58,7 @@ def test_aviator_url_resolves_offsets_through_syfon(monkeypatch):
 
     def fake_get(url, **kwargs):
         calls.append((url, kwargs))
-        if url.endswith("/objects/source-id"):
+        if url.endswith("/ga4gh/drs/v1/objects/source-id"):
             return FakeResponse(
                 {
                     "id": "source-id",
@@ -70,9 +70,9 @@ def test_aviator_url_resolves_offsets_through_syfon(monkeypatch):
         if url.endswith("/index"):
             assert kwargs["params"] == {"url": "s3://bucket/image.offsets.json", "limit": 1}
             return FakeResponse({"records": [{"did": "offsets-id"}]})
-        if url.endswith("/objects/source-id/access/source-access"):
+        if url.endswith("/ga4gh/drs/v1/objects/source-id/access/source-access"):
             return FakeResponse({"url": "https://signed.example/source?x=1"})
-        if url.endswith("/objects/offsets-id"):
+        if url.endswith("/ga4gh/drs/v1/objects/offsets-id"):
             return FakeResponse(
                 {
                     "id": "offsets-id",
@@ -81,7 +81,7 @@ def test_aviator_url_resolves_offsets_through_syfon(monkeypatch):
                     ],
                 }
             )
-        if url.endswith("/objects/offsets-id/access/offsets-access"):
+        if url.endswith("/ga4gh/drs/v1/objects/offsets-id/access/offsets-access"):
             return FakeResponse({"url": "https://signed.example/offsets?x=2"})
         raise AssertionError(f"unexpected Syfon request: {url}")
 
@@ -94,9 +94,9 @@ def test_aviator_url_resolves_offsets_through_syfon(monkeypatch):
     assert unquote(redirect).count("https://signed.example/source?x=1") == 1
     assert unquote(redirect).count("https://signed.example/offsets?x=2") == 1
     assert [call[0] for call in calls] == [
-        "https://syfon.example/objects/source-id",
+        "https://syfon.example/ga4gh/drs/v1/objects/source-id",
         "https://syfon.example/index",
-        "https://syfon.example/objects/source-id/access/source-access",
-        "https://syfon.example/objects/offsets-id",
-        "https://syfon.example/objects/offsets-id/access/offsets-access",
+        "https://syfon.example/ga4gh/drs/v1/objects/source-id/access/source-access",
+        "https://syfon.example/ga4gh/drs/v1/objects/offsets-id",
+        "https://syfon.example/ga4gh/drs/v1/objects/offsets-id/access/offsets-access",
     ]
