@@ -14,8 +14,7 @@ dependencies = [
     "uvicorn",
     "requests",
     "pydantic-settings",
-    "python-dotenv",
-    "gen3"
+    "python-dotenv"
 ]
 
 [project.optional-dependencies]
@@ -24,7 +23,8 @@ test = [
     "pre-commit",
     "pytest",
     "pytest-cov",
-    "flake8"
+    "flake8",
+    "httpx"
 ]
 
 [tool.pytest.ini_options]

@@ -1,17 +1,14 @@
 import urllib
 
 from fastapi import HTTPException
-from gen3.auth import Gen3Auth
-from gen3.file import Gen3File
-from gen3.index import Gen3Index
-from image_viewer.object_signer import get_signed_url
+from image_viewer.object_signer import get_object, get_signed_url, query_url
 import logging
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 
 
-def aviator_url(object_id: str, access_token: str, base_url: str) -> str:
+def aviator_url(object_id: str, access_token: str, base_url: str, syfon_url: str) -> str:
     """Return the URL for the Aviator image viewer.
     object_id: str The object ID of an ome.tif file to view
     access_token: str The access token to use for authentication
@@ -26,34 +23,34 @@ def aviator_url(object_id: str, access_token: str, base_url: str) -> str:
     Construct the URL for the Aviator image viewer using the signed URLs.
     """
 
-    auth = Gen3Auth(refresh_file=f"accesstoken:///{access_token}")
-    file_service = Gen3File(auth)
-    index_service = Gen3Index(auth)
-
-    source_record = index_service.get(object_id)
+    source_record = get_object(object_id, access_token, syfon_url)
     if not isinstance(source_record, dict):
         raise HTTPException(status_code=500, detail=f"Could not find object with id {object_id} {source_record}")
     logger.error(f"aviator_url source_record {source_record}")
-    if "file_name" not in source_record:
-        raise HTTPException(status_code=500, detail=f"Could not find file_name within {source_record}")
-    if "ome.tif" not in source_record["file_name"]:
-        raise HTTPException(status_code=500, detail=f"Expected file_name to contain 'ome.tif' {source_record}")
-    source_file_name = source_record["file_name"]
+    access_methods = source_record.get("access_methods", [])
+    if not isinstance(access_methods, list) or len(access_methods) == 0:
+        raise HTTPException(status_code=500, detail=f"Could not find access methods within {source_record}")
 
-    offset_file_name = source_file_name.replace("ome.tiff", "offsets.json")
-    offset_file_name = offset_file_name.replace("ome.tif", "offsets.json")
-    offsets_records = index_service.query_urls(offset_file_name)
-    if not isinstance(offsets_records, list) or len(offsets_records) != 1:
+    source_access_url = access_methods[0].get("access_url") or {}
+    source_url = source_access_url.get("url")
+    if not source_url:
+        raise HTTPException(status_code=500, detail=f"Could not find source URL within {source_record}")
+    if "ome.tif" not in source_url:
+        raise HTTPException(status_code=500, detail=f"Expected url to contain 'ome.tif' {source_record}")
+
+    offset_file_url = source_url.replace("ome.tiff", "offsets.json").replace("ome.tif", "offsets.json")
+    offsets_records = query_url(offset_file_url, access_token, syfon_url)
+    if not isinstance(offsets_records, list) or len(offsets_records) == 0:
         raise HTTPException(status_code=500,
-                            detail=f"Could not find object with file_name {offset_file_name} {offsets_records}")
+                            detail=f"Could not find object with url {offset_file_url} {offsets_records}")
     offsets_record = offsets_records[0]
-    if "did" not in offsets_record:
+    if "did" not in offsets_record and "id" not in offsets_record:
         raise HTTPException(status_code=500, detail=f"Could not find did within {offsets_record}")
-    offsets_object_id = offsets_record["did"]
+    offsets_object_id = offsets_record.get("did") or offsets_record["id"]
 
     # get the signed url for the source object
-    source_signed_url = get_signed_url(object_id, file_service)
-    offsets_signed_url = get_signed_url(offsets_object_id, file_service)
+    source_signed_url = get_signed_url(object_id, access_token, syfon_url, source_record)
+    offsets_signed_url = get_signed_url(offsets_object_id, access_token, syfon_url)
 
     # Use the configurable base_url from settings
     # we encode the signed url because it will contain special characters

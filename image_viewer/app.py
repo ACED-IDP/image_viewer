@@ -1,9 +1,10 @@
 import logging
 import os
 import threading
+from urllib.parse import urlunsplit
 
 import uvicorn
-from fastapi import FastAPI, HTTPException, Header, Cookie
+from fastapi import FastAPI, HTTPException, Header, Cookie, Request
 from fastapi.responses import RedirectResponse
 from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -20,6 +21,7 @@ VITESSCE_URL = "https://vitessce.io/?url=data:,{API OUTPUT HERE}"  # TODO: Add t
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file=".env")
     base_url: str = Field(default=os.getenv("BASE_URL", AVIVATOR_URL))
+    syfon_url: str = Field(default=os.getenv("SYFON_URL", ""))
 
 
 # Load configuration
@@ -35,6 +37,17 @@ logger.setLevel(logging.DEBUG)
 logger.info('API is starting up')
 
 
+def _syfon_url_for_request(request: Request) -> str:
+    if settings.syfon_url:
+        return settings.syfon_url.rstrip("/")
+
+    proto = request.headers.get("x-forwarded-proto") or request.url.scheme
+    host = request.headers.get("x-forwarded-host") or request.headers.get("host") or request.url.netloc
+    proto = proto.split(",", 1)[0].strip()
+    host = host.split(",", 1)[0].strip()
+    return urlunsplit((proto, host, "", "", "")).rstrip("/")
+
+
 @app.get("/_health", summary="Health Check", description="Indicates server is running, returns a 200 OK status.")
 async def health_check():
     return {"status": "OK"}
@@ -44,7 +57,12 @@ async def health_check():
          summary="View Object",
          description="Redirects to a URL for the object.",
          responses={307: {"description": "Temporary Redirect"}})
-async def view_object(object_id: str, authorization: str = Header(None), access_token: str = Cookie(None)):
+async def view_object(
+    object_id: str,
+    request: Request,
+    authorization: str = Header(None),
+    access_token: str = Cookie(None),
+):
 
     token = None
 
@@ -58,7 +76,8 @@ async def view_object(object_id: str, authorization: str = Header(None), access_
         raise HTTPException(status_code=404, detail="Token not found")
 
     try:
-        redirect_url = aviator_url(object_id, token, settings.base_url)
+        syfon_url = _syfon_url_for_request(request)
+        redirect_url = aviator_url(object_id, token, settings.base_url, syfon_url)
 
         return RedirectResponse(url=redirect_url)
     except HTTPException as e:

@@ -1,5 +1,7 @@
 from urllib.parse import urlparse, parse_qs
 
+import image_viewer.app
+
 
 def test_view_object_with_bearer_token(client, valid_token):
     print("in test_view_object_with_bearer_token")
@@ -35,3 +37,26 @@ def test_view_object_without_token(client):
     object_id = "123"
     response = client.get(f"/view/{object_id}", follow_redirects=False)
     assert response.status_code == 404  # Token not found
+
+
+def test_view_object_uses_forwarded_origin_for_syfon(monkeypatch, client, valid_token):
+    captured = {}
+
+    def fake_aviator_url(object_id, access_token, base_url, syfon_url):
+        captured["syfon_url"] = syfon_url
+        return "/aviator/?image_url=image&offsets_url=offsets"
+
+    monkeypatch.setattr(image_viewer.app, "aviator_url", fake_aviator_url)
+
+    response = client.get(
+        "/view/123",
+        headers={
+            "Authorization": f"Bearer {valid_token}",
+            "x-forwarded-proto": "https",
+            "x-forwarded-host": "calypr-dev.ohsu.edu",
+        },
+        follow_redirects=False,
+    )
+
+    assert response.status_code == 307
+    assert captured["syfon_url"] == "https://calypr-dev.ohsu.edu"
